@@ -2,14 +2,24 @@ package modelo;
 
 public class Alarma {
 
+    private int codigoHash;
     private String nombre_accion;
     private Float precio;
     private String accion_usuario; //Definimos si el autor quiere comprar o vender una acción
 
-    public Alarma(String nombre_accion, Float precio, String accion_usuario) {
+    public Alarma(int codigoHash, String nombre_accion, Float precio, String accion_usuario) {
+        this.codigoHash = codigoHash;
         this.nombre_accion = nombre_accion;
         this.precio = precio;
         this.accion_usuario = accion_usuario;
+    }
+
+    public int getCodigoHash() {
+        return codigoHash;
+    }
+
+    public void setCodigoHash(int codigoHash) {
+        this.codigoHash = codigoHash;
     }
 
     public String getNombre_accion() {

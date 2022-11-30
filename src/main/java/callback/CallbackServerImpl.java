@@ -73,8 +73,8 @@ public class CallbackServerImpl extends UnicastRemoteObject implements CallbackS
         }
     }
 
-    public void nuevaAlarma(String nombre,Float precio,String accion){
-       Alarma alarma=new Alarma(nombre,precio,accion);
+    public void nuevaAlarma(int codigo,String nombre,Float precio,String accion){
+       Alarma alarma=new Alarma(codigo,nombre,precio,accion);
        this.alarmas.add(alarma);
     }
 
@@ -85,17 +85,17 @@ public class CallbackServerImpl extends UnicastRemoteObject implements CallbackS
        }
     }
 
-    public String comprobarAlarma(){
+    public String comprobarAlarma(int codigo_usuario){
 
        String msg= "";
         for (int i=0;i<ac.size();i++){
             for (int j=0;j<alarmas.size();j++){
-                if (ac.get(i).getNombre().equals(alarmas.get(j).getNombre_accion())&& ac.get(i).getPrecio() <= alarmas.get(j).getPrecio() && alarmas.get(j).getAccion_usuario().equals("COMPRA")){
+                if (codigo_usuario==alarmas.get(j).getCodigoHash() && ac.get(i).getNombre().equals(alarmas.get(j).getNombre_accion())&& ac.get(i).getPrecio() <= alarmas.get(j).getPrecio() && alarmas.get(j).getAccion_usuario().equals("COMPRA")){
                     msg = msg + "SE REPRODUCE LA ALARMA POR LA ACCIÓN: " + alarmas.get(j).getNombre_accion() + "CON ACCION: " + alarmas.get(j).getAccion_usuario() + "POR EL PRECIO: " + alarmas.get(j).getPrecio() + " \n";
                     alarmas.remove(alarmas.get(j));
 
                 }
-                else if (ac.get(i).getNombre().equals(alarmas.get(j).getNombre_accion())&& ac.get(i).getPrecio() >= alarmas.get(j).getPrecio() && alarmas.get(j).getAccion_usuario().equals("VENTA")){
+                else if (codigo_usuario==alarmas.get(j).getCodigoHash() && ac.get(i).getNombre().equals(alarmas.get(j).getNombre_accion())&& ac.get(i).getPrecio() >= alarmas.get(j).getPrecio() && alarmas.get(j).getAccion_usuario().equals("VENTA")){
                     msg = msg + "SE REPRODUCE LA ALARMA POR LA ACCIÓN: " + alarmas.get(j).getNombre_accion() + " CON ACCION: " + alarmas.get(j).getAccion_usuario() + " POR EL PRECIO: " + alarmas.get(j).getPrecio() + " \n";
                     alarmas.remove(alarmas.get(j));
 
@@ -137,8 +137,8 @@ public class CallbackServerImpl extends UnicastRemoteObject implements CallbackS
       System.out.println("doing "+ i +"-th callback\n");    
       // convert the vector object to a callback object
       CallbackClientInterface nextClient = (CallbackClientInterface)clientList.elementAt(i);
-
-      msg=comprobarAlarma();
+      System.out.println(nextClient.hashCode());
+      msg=comprobarAlarma(nextClient.hashCode());
       // invoke the callback method
         nextClient.notifyMe(msg);
     }// end for

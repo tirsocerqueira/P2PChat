@@ -24,7 +24,7 @@ public interface CallbackServerInterface extends Remote {
 //        object of the client; to be used by the server
 //        to make its callbacks.
 
-  public void nuevaAlarma(String nombre,Float precio,String accion)throws java.rmi.RemoteException;
+  public void nuevaAlarma(int codigo,String nombre,Float precio,String accion)throws java.rmi.RemoteException;
 
   public void registerForCallback(
     CallbackClientInterface callbackClientObject

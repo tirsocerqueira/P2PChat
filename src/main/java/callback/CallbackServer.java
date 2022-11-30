@@ -42,7 +42,6 @@ public class CallbackServer  {
         exportedObj.setAcciones();
         Thread.sleep(60*1000);
         exportedObj.doCallbacks();
-
       }
 
     }// end try

@@ -11,7 +11,7 @@ import java.util.Scanner;
  * CallbackServerInterface.  It also accepts callback
  * from the server.
  * 
- * 
+ *
  * 
  * @author M. L. Liu
  */
@@ -48,7 +48,7 @@ public class CallbackClient {
       while(!salida.equals("s")) {
         ThreadScan scan = new ThreadScan("", (float) 0, "");
         scan.run();
-        h.nuevaAlarma(scan.getAccion(), scan.getPrecio(), scan.getAccion_usuario());
+        h.nuevaAlarma(callbackObj.hashCode(),scan.getAccion(), scan.getPrecio(), scan.getAccion_usuario());
         salida=scan.getAccion();
       }
         //DORMIR PROCESO
