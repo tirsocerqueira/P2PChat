@@ -19,4 +19,13 @@ public interface CallbackClientInterface
     public String notifyMe(String message) 
       throws java.rmi.RemoteException;
 
+    public String getNombre()
+            throws java.rmi.RemoteException;
+
+    public String getPass()
+            throws java.rmi.RemoteException;
+
+    public void enviarMensaje(String emisor, String mensaje)
+            throws java.rmi.RemoteException;
+
 } // end interface

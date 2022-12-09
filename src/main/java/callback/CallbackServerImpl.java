@@ -2,15 +2,18 @@ package callback;
 
 import modelo.Accion;
 import modelo.Alarma;
+import modelo.Grupo;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.rmi.*;
 import java.rmi.server.*;
 import java.util.ArrayList;
+import java.util.UUID;
 import java.util.Vector;
 
 /**
@@ -20,130 +23,104 @@ import java.util.Vector;
  */
 
 public class CallbackServerImpl extends UnicastRemoteObject implements CallbackServerInterface {
-   private Vector clientList;
-   private ArrayList<Alarma> alarmas;
-   private ArrayList<Accion> ac;
+    private ArrayList<CallbackClientInterface> clientList;
+    private ArrayList<Usuario>usuarios;
 
-   public CallbackServerImpl() throws IOException {
-      super( );
-     clientList = new Vector();
-     alarmas=new ArrayList<>();
-     ac=new ArrayList<>();
-   }
+    public CallbackServerImpl() throws IOException {
+        super( );
+        clientList = new ArrayList();
+        usuarios=new ArrayList<>();
+        this.setUsersIniciales(usuarios);
+    }
 
-  public String sayHello( )   
-    throws java.rmi.RemoteException {
-      return("hello");
-  }
+    public String sayHello( )
+            throws java.rmi.RemoteException {
+        return("hello");
+    }
 
-  public void setAccionesIniciales() throws IOException {
-      Document doc = Jsoup.connect("https://www.bolsamadrid.es/esp/aspx/Mercados/Precios.aspx?indice=ESI100000000&punto=indice").get();
-      Elements el = doc.select("#ctl00_Contenido_tblAcciones");
-      Elements acciones = el.select("tr");
-      acciones.remove(0);
+    public synchronized boolean registerUser (CallbackClientInterface client,String user,String pass){
 
-      //Método para guardar los primeros datos
-      for (Element accion : acciones) {
-
-          Elements valores = accion.getAllElements();
-          String precio_prov=valores.get(3).text().replaceAll(",",".");
-          Accion accion1=new Accion(accion.getElementsByTag("a").text(),Float.parseFloat(precio_prov));
-          ac.add(accion1);
-
-      }
-  }
-
-    public void setAcciones() throws IOException {
-        Document doc2 = Jsoup.connect("https://www.bolsamadrid.es/esp/aspx/Mercados/Precios.aspx?indice=ESI100000000&punto=indice").get();
-        Elements el2 = doc2.select("#ctl00_Contenido_tblAcciones");
-        Elements acciones = el2.select("tr");
-        acciones.remove(0);
-        //Implementar el método que actualice los valores
-        for (Element accion : acciones) {
-
-            Elements valores = accion.getAllElements();
-            String precio_prov=valores.get(3).text().replaceAll(",",".");
-            Accion accion1=new Accion(accion.getElementsByTag("a").text(),Float.parseFloat(precio_prov));
-            for (Accion accion2: ac){
-                if(accion1.getNombre().equals(accion2.getNombre())){
-                    ac.get(ac.indexOf(accion2)).setPrecio(accion1.getPrecio());
-                }
+        for (int i=0;i<clientList.size();i++){
+            if (clientList.get(i).equals(client)){
+                return false;
             }
+        }
+        clientList.add(client);
+        return true;
+    }
 
+
+    public synchronized void registerForCallback(CallbackClientInterface callbackClientObject) throws java.rmi.RemoteException{
+        // store the callback object into the vector
+        if (!(clientList.contains(callbackClientObject))) {
+            clientList.add(callbackClientObject);
+            System.out.println("Registered new client ");
+            //System.out.println(callbackClientObject.getNombre());
+            doCallbacks(callbackClientObject.getNombre());
+        } // end if
+    }
+
+    public synchronized void unregisterForCallback(CallbackClientInterface callbackClientObject) throws java.rmi.RemoteException{
+        if (clientList.remove(callbackClientObject)) {
+            System.out.println("El usuario se ha desonectado ");
+        } else {
+            System.out.println(
+                    "Desconexion errónea");
         }
     }
 
-    public void nuevaAlarma(int codigo,String nombre,Float precio,String accion){
-       Alarma alarma=new Alarma(codigo,nombre,precio,accion);
-       this.alarmas.add(alarma);
-    }
-
-    public void imprimeAcciones(){
-       for(Accion accion : ac){
-           System.out.println(accion.getNombre());
-           System.out.println(accion.getPrecio());
-       }
-    }
-
-    public String comprobarAlarma(int codigo_usuario){
-
-       String msg= "";
-        for (int i=0;i<ac.size();i++){
-            for (int j=0;j<alarmas.size();j++){
-                if (codigo_usuario==alarmas.get(j).getCodigoHash() && ac.get(i).getNombre().equals(alarmas.get(j).getNombre_accion())&& ac.get(i).getPrecio() <= alarmas.get(j).getPrecio() && alarmas.get(j).getAccion_usuario().equals("COMPRA")){
-                    msg = msg + "SE REPRODUCE LA ALARMA POR LA ACCIÓN: " + alarmas.get(j).getNombre_accion() + "CON ACCION: " + alarmas.get(j).getAccion_usuario() + "POR EL PRECIO: " + alarmas.get(j).getPrecio() + " \n";
-                    alarmas.remove(alarmas.get(j));
-
-                }
-                else if (codigo_usuario==alarmas.get(j).getCodigoHash() && ac.get(i).getNombre().equals(alarmas.get(j).getNombre_accion())&& ac.get(i).getPrecio() >= alarmas.get(j).getPrecio() && alarmas.get(j).getAccion_usuario().equals("VENTA")){
-                    msg = msg + "SE REPRODUCE LA ALARMA POR LA ACCIÓN: " + alarmas.get(j).getNombre_accion() + " CON ACCION: " + alarmas.get(j).getAccion_usuario() + " POR EL PRECIO: " + alarmas.get(j).getPrecio() + " \n";
-                    alarmas.remove(alarmas.get(j));
-
+    public synchronized void doCallbacks(String nombre) throws java.rmi.RemoteException{
+        String msg ="";
+        // make callback to each registered client
+        for (int i = 0; i < clientList.size(); i++){
+            System.out.println("doing "+ i +"-th callback\n");
+            CallbackClientInterface nextClient = (CallbackClientInterface)clientList.get(i);
+            for (int j=0;j<usuarios.size();j++) {
+                if( usuarios.get(j).getAmigos().contains(nombre)) {
+                    msg = "Se ha conectado el uuario: " + nombre;
+                    nextClient.notifyMe(msg);
                 }
             }
+
+        }// end for
+
+    } // doCallbacks
+
+    public synchronized boolean comprobarUsuario(CallbackClientInterface cliente) throws RemoteException {
+
+        for(int i=0;i<usuarios.size();i++){
+            if (usuarios.get(i).getNombre().equals(cliente.getNombre()) && usuarios.get(i).getPass().equals(cliente.getPass())){
+                //Los usuarios registrados en callback serán los usuarios conectados
+                registerForCallback(cliente);
+                return true;
+            }
         }
-        return msg;
+        return false;
     }
 
-  public synchronized void registerForCallback(CallbackClientInterface callbackClientObject) throws java.rmi.RemoteException{
-      // store the callback object into the vector
-      if (!(clientList.contains(callbackClientObject))) {
-         clientList.addElement(callbackClientObject);
-         System.out.println("Registered new client ");
-      //doCallbacks();
-    } // end if
-  }  
+    private void setUsersIniciales(ArrayList<Usuario> usuarios){
 
-// This remote method allows an object client to 
-// cancel its registration for callback
-// @param id is an ID for the client; to be used by
-// the server to uniquely identify the registered client.
-  public synchronized void unregisterForCallback(CallbackClientInterface callbackClientObject) throws java.rmi.RemoteException{
-    if (clientList.removeElement(callbackClientObject)) {
-      System.out.println("Unregistered client ");
-    } else {
-       System.out.println(
-         "unregister: client wasn't registered.");
+        Usuario tirso=new Usuario("tirso","1234",new ArrayList<>(),new ArrayList<>());
+        Usuario iago=new Usuario("iago","1234",new ArrayList<>(),new ArrayList<>());
+        Usuario juan=new Usuario("juan","1234",new ArrayList<>(),new ArrayList<>());
+        Usuario pedro=new Usuario("pedro","1234",new ArrayList<>(),new ArrayList<>());
+
+        //Añadimos usuarios de prueba
+        usuarios.add(tirso);
+        usuarios.add(iago);
+        usuarios.add(juan);
+        usuarios.add(pedro);
+
+        //Añadimos usuarios a grupo
+        tirso.addGrupo("A");
+        iago.addGrupo("A");
+        juan.addGrupo("B");
+        pedro.addGrupo("B");
+
+        //Añadimos amigos
+        tirso.addAmigo(iago.getNombre());
+        iago.addAmigo(tirso.getNombre());
+        juan.addAmigo(pedro.getNombre());
+        pedro.addAmigo(juan.getNombre());
     }
-  } 
-
-  public synchronized void doCallbacks( ) throws java.rmi.RemoteException{
-       String msg ="";
-    // make callback to each registered client
-    System.out.println(
-       "**************************************\n"
-        + "Callbacks initiated ---");
-    for (int i = 0; i < clientList.size(); i++){
-      System.out.println("doing "+ i +"-th callback\n");    
-      // convert the vector object to a callback object
-      CallbackClientInterface nextClient = (CallbackClientInterface)clientList.elementAt(i);
-      System.out.println(nextClient.hashCode());
-      msg=comprobarAlarma(nextClient.hashCode());
-      // invoke the callback method
-        nextClient.notifyMe(msg);
-    }// end for
-    System.out.println("********************************\n" +
-                       "Server completed callbacks ---");
-  } // doCallbacks
-
 }// end CallbackServerImpl class   

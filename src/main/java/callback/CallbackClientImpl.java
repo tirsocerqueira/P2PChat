@@ -1,23 +1,34 @@
 package callback;
 
-import java.rmi.*;
-import java.rmi.server.*;
+import callback.CallbackClientInterface;
 
-/**
- * This class implements the remote interface 
- * CallbackClientInterface.
- * @author M. L. Liu
- */
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 
 public class CallbackClientImpl extends UnicastRemoteObject implements CallbackClientInterface {
-  
-   public CallbackClientImpl() throws RemoteException {
-      super( );
-   }
 
+   private String nombre;
+   private String pass;
+   public CallbackClientImpl(String nombre,String pass) throws RemoteException {
+      super( );
+      this.nombre=nombre;
+      this.pass=pass;
+
+   }
+   public void enviarMensaje(String emisor, String mensaje) throws RemoteException {
+
+   }
    public String notifyMe(String message){
       System.out.println(message);
       return message;
-   }      
+   }
 
-}// end CallbackClientImpl class   
+   public String getNombre() {
+      return nombre;
+   }
+
+   public String getPass() {
+      return pass;
+   }
+
+}// end CallbackClientImpl class
