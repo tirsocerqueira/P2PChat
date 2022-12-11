@@ -16,6 +16,13 @@ public class Usuario {
         this.amigos = amigos;
     }
 
+    public Usuario(String nombre, String pass){
+        this.nombre = nombre;
+        this.pass = pass;
+        this.amigos = new ArrayList<>();
+        this.grupos = new ArrayList<>();
+    }
+
     public String getNombre() {
         return nombre;
     }
@@ -54,5 +61,14 @@ public class Usuario {
 
     public void addAmigo(String amigo){
         this.amigos.add(amigo);
+    }
+
+    @Override
+    public String toString() {
+        String txt = "Usuario: " + this.nombre + "\nAmigos: ";
+        for (String u : this.amigos) {
+            txt += u + ", ";
+        }
+        return txt;
     }
 }

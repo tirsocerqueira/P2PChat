@@ -1,0 +1,4 @@
+iago,tirso
+tirso,iago
+juan,pedro
+pedro,juan

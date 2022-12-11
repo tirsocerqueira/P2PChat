@@ -16,13 +16,10 @@ public interface CallbackClientInterface
   // @param message - a string containing information for the
   //                  client to process upon being called back.
 
-    public String notifyMe(String message) 
+    public void notifyMe(String message, CallbackClientInterface c) 
       throws java.rmi.RemoteException;
 
     public String getNombre()
-            throws java.rmi.RemoteException;
-
-    public String getPass()
             throws java.rmi.RemoteException;
 
     public void enviarMensaje(String emisor, String mensaje)
