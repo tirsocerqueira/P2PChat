@@ -102,16 +102,24 @@ public class CallbackServerImpl extends UnicastRemoteObject implements CallbackS
 
     } // doCallbacks
 
-    public synchronized boolean comprobarUsuario(CallbackClientInterface cliente, String name, String pass) throws RemoteException {
-
+    public synchronized ArrayList<CallbackClientInterface> comprobarUsuario(CallbackClientInterface cliente, String name, String pass) throws RemoteException {
+        ArrayList<CallbackClientInterface> amigos = new ArrayList<>();
         for(int i=0;i<this.usuarios.size();i++){
             if (this.usuarios.get(i).getNombre().equals(name) && this.usuarios.get(i).getPass().equals(pass)){
                 //Los usuarios registrados en callback serán los usuarios conectados
                 registerForCallback(cliente);
-                return true;
+                //Obtener amigos
+                for(String a  : this.usuarios.get(i).getAmigos()){
+                    for(CallbackClientInterface u: this.clientList){
+                        if(u.getNombre().equals(a)){
+                            amigos.add(u);
+                        }
+                    }
+                }
+                return amigos;
             }
         }
-        return false;
+        return null;
     }
 
     private void setUsersIniciales(){

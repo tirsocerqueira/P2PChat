@@ -19,29 +19,17 @@ import java.util.Scanner;
  */
 
 public class CallbackClient {
+  private CallbackServerInterface servidor;
+  private CallbackClientInterface interfazUsuario;
   private ArrayList<CallbackClientInterface> amigos;
-  public CallbackClient() {
+  public CallbackClient(CallbackServerInterface servidor, String name, String pass) {
     try {
       this.amigos = new ArrayList<>();
-      Scanner sc = new Scanner(System.in);
-
-      String registryURL = "rmi://localhost:1099/P2PChat";
-      Boolean comprobacion;
-      // find the remote object and cast it to an
-      //   interface object
-      CallbackServerInterface h = (CallbackServerInterface)Naming.lookup(registryURL);
-      System.out.println("Lookup completed " );
-
-      //LÓGICA DE LOGIN
-      System.out.println("Escriba su usuario: ");
-      String name = sc.nextLine();
-      System.out.println("Escriba su contraseña: ");
-      String pass = sc.nextLine();
-
+      this.servidor = servidor;
 
       CallbackClientInterface callbackObj = new CallbackClientImpl(name,this);
       //Comprobamos si está registrado
-      comprobacion=h.comprobarUsuario(callbackObj,name,pass);
+      this.amigos=this.servidor.comprobarUsuario(callbackObj,name,pass);
       //Si está registrado se mete en la lista da callbacks
       String flag="active";
 
@@ -58,7 +46,7 @@ public class CallbackClient {
 
 
       //Cuando queramos salimos y nos desconectamos
-      h.unregisterForCallback(callbackObj);
+      this.servidor.unregisterForCallback(callbackObj);
       System.out.println("Unregistered for callback.");
       System.exit(0);
     } // end try
@@ -68,12 +56,12 @@ public class CallbackClient {
     }
   }
 
+  public boolean isLogged(){
+    return this.amigos != null;
+  }
+
   public void anadirAmigo(String message, CallbackClientInterface c){
     this.amigos.add(c);
     System.out.println(message);
-  }
-
-  public static void main(String[] args) {
-    CallbackClient c = new CallbackClient();
   }
 }

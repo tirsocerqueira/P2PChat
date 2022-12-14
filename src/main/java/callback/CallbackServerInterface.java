@@ -21,15 +21,11 @@ public interface CallbackServerInterface extends Remote {
         String pass
   ) throws java.rmi.RemoteException;
 
-  public void registerForCallback(
-          CallbackClientInterface callbackClientObject
-  ) throws java.rmi.RemoteException;
-
   public void unregisterForCallback(
           CallbackClientInterface callbackClientObject)
           throws java.rmi.RemoteException;
 
-  public boolean comprobarUsuario(CallbackClientInterface cliente, String name, String pass)
+  public ArrayList<CallbackClientInterface> comprobarUsuario(CallbackClientInterface cliente, String name, String pass)
           throws RemoteException;
 }
 
